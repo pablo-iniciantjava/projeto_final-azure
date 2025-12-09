@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro Pessoal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .form-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .filtro-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+
+        .filtro-container .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .filtro-container button {
+            width: auto;
+            padding: 12px 25px;
+        }
+
+        .resumo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .resumo h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .resumo .total {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .gastos-lista {
+            margin-top: 30px;
+        }
+
+        .gasto-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s;
+        }
+
+        .gasto-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .gasto-info {
+            flex: 1;
+        }
+
+        .gasto-descricao {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .gasto-detalhes {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .gasto-valor {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-right: 15px;
+        }
+
+        .btn-remover {
+            background: #e74c3c;
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .btn-remover:hover {
+            background: #c0392b;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .mensagem {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .mensagem.sucesso {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .mensagem.erro {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .vazio {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .filtro-container {
+                flex-direction: column;
+            }
+
+            .filtro-container button {
+                width: 100%;
+            }
+
+            .gasto-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .gasto-valor {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Controle Financeiro Pessoal</h1>
+
+        <div id="mensagem"></div>
+
+        <div class="form-container">
+            <h2 style="margin-bottom: 20px; color: #333;">Novo Gasto</h2>
+            <form id="formGasto">
+                <div class="form-group">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" required placeholder="Ex: Supermercado, Conta de luz...">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="valor">Valor (R$)</label>
+                        <input type="number" id="valor" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoria">Categoria</label>
+                        <select id="categoria" required>
+                            <option value="">Selecione...</option>
+                            <option value="Alimentação">Alimentação</option>
+                            <option value="Transporte">Transporte</option>
+                            <option value="Moradia">Moradia</option>
+                            <option value="Saúde">Saúde</option>
+                            <option value="Educação">Educação</option>
+                            <option value="Lazer">Lazer</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" required>
+                </div>
+
+                <button type="submit">Adicionar Gasto</button>
+            </form>
+        </div>
+
+        <div class="filtro-container">
+            <div class="form-group">
+                <label for="filtroMes">Mês</label>
+                <select id="filtroMes">
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="filtroAno">Ano</label>
+                <input type="number" id="filtroAno" min="2020" max="2100" required>
+            </div>
+
+            <button onclick="filtrarGastos()">Filtrar</button>
+        </div>
+
+        <div class="resumo" id="resumo">
+            <h2>Total do Mês</h2>
+            <div class="total">R$ 0,00</div>
+        </div>
+
+        <div class="gastos-lista" id="gastosLista">
+            <div class="vazio">Carregando gastos...</div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializa data atual
+        const hoje = new Date();
+        document.getElementById('data').value = hoje.toISOString().split('T')[0];
+        document.getElementById('filtroMes').value = hoje.getMonth() + 1;
+        document.getElementById('filtroAno').value = hoje.getFullYear();
+
+        // Carrega gastos ao iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            filtrarGastos();
+        });
+
+        // Formulário de novo gasto
+        document.getElementById('formGasto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const gasto = {
+                descricao: document.getElementById('descricao').value,
+                valor: parseFloat(document.getElementById('valor').value),
+                categoria: document.getElementById('categoria').value,
+                data: document.getElementById('data').value
+            };
+
+            try {
+                const response = await fetch('/api/gastos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(gasto)
+                });
+
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    mostrarMensagem('Gasto adicionado com sucesso!', 'sucesso');
+                    document.getElementById('formGasto').reset();
+                    document.getElementById('data').value = new Date().toISOString().split('T')[0];
+                    filtrarGastos();
+                } else {
+                    mostrarMensagem('Erro ao adicionar gasto: ' + result.erro, 'erro');
+                }
+            } catch (error) {
+                mostrarMensagem('Erro ao comunicar com o servidor: ' + error.message, 'erro');
+            }
+        });
+
+        // Filtrar gastos por mês/ano
+        async function filtrarGastos() {
+            const mes = document.getElementById('filtroMes').value;
+            const ano = document.getElementById('filtroAno').value;
+
+            try {
+                const response = await fetch(`/api/gastos/mes?mes=${mes}&ano=${ano}`);
+                const data = await response.json();
+
+                atualizarResumo(data.total);
+                exibirGastos(data.gastos);
+            } catch (error) {
+                mostrarMensagem('Erro ao carregar gastos: ' + error.message, 'erro');
+            }
+        }
+
+        // Atualizar resumo
+        function atualizarResumo(total) {
+            const resumoDiv = document.getElementById('resumo');
+            resumoDiv.innerHTML = `
+                <h2>Total do Mês</h2>
+                <div class="total">R$ ${total.toFixed(2).replace('.', ',')}</div>
+            `;
+        }
+
+        // Exibir lista de gastos
+        function exibirGastos(gastos) {
+            const listaDiv = document.getElementById('gastosLista');
+            
+            if (gastos.length === 0) {
+                listaDiv.innerHTML = '<div class="vazio">Nenhum gasto registrado para este mês.</div>';
+                return;
+            }
+
+            listaDiv.innerHTML = gastos.map(gasto => `
+                <div class="gasto-item">
+                    <div class="gasto-info">
+                        <div class="gasto-descricao">${gasto.descricao}</div>
+                        <div class="gasto-detalhes">
+                            ${gasto.categoria} • ${formatarData(gasto.data)}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <div class="gasto-valor">R$ ${gasto.valor.toFixed(2).replace('.', ',')}</div>
+                        <button class="btn-remover" onclick="removerGasto('${gasto.id}')">Remover</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Remover gasto
+        async function removerGasto(id) {
+            if (!confirm('Deseja realmente remover este gasto?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/gastos?id=${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (result.sucesso) {
+                    mostrarMensagem('Gasto removido com sucesso!', 'sucesso');
+                    filtrarGastos();
+                } else {
+                    mostrarMensagem('Erro ao remover gasto', 'erro');
+                }
+            } catch (error) {
+                mostrarMensagem('Erro ao comunicar com o servidor: ' + error.message, 'erro');
+            }
+        }
+
+        // Formatar data
+        function formatarData(dataStr) {
+            const data = new Date(dataStr + 'T00:00:00');
+            return data.toLocaleDateString('pt-BR');
+        }
+
+        // Mostrar mensagem
+        function mostrarMensagem(texto, tipo) {
+            const mensagemDiv = document.getElementById('mensagem');
+            mensagemDiv.className = `mensagem ${tipo}`;
+            mensagemDiv.textContent = texto;
+            mensagemDiv.style.display = 'block';
+
+            setTimeout(() => {
+                mensagemDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
