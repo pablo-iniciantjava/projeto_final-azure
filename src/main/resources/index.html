@@ -350,17 +350,33 @@
                     body: JSON.stringify(gasto)
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
                 const result = await response.json();
                 
                 if (result.sucesso) {
                     mostrarMensagem('Gasto adicionado com sucesso!', 'sucesso');
+                    
+                    // Atualiza o filtro para o mês/ano do gasto adicionado
+                    const dataGasto = new Date(gasto.data + 'T00:00:00');
+                    document.getElementById('filtroMes').value = dataGasto.getMonth() + 1;
+                    document.getElementById('filtroAno').value = dataGasto.getFullYear();
+                    
+                    // Limpa o formulário e atualiza a lista
                     document.getElementById('formGasto').reset();
                     document.getElementById('data').value = new Date().toISOString().split('T')[0];
-                    filtrarGastos();
+                    
+                    // Aguarda um pouco para garantir que o banco processou
+                    setTimeout(() => {
+                        filtrarGastos();
+                    }, 100);
                 } else {
-                    mostrarMensagem('Erro ao adicionar gasto: ' + result.erro, 'erro');
+                    mostrarMensagem('Erro ao adicionar gasto: ' + (result.erro || 'Erro desconhecido'), 'erro');
                 }
             } catch (error) {
+                console.error('Erro ao adicionar gasto:', error);
                 mostrarMensagem('Erro ao comunicar com o servidor: ' + error.message, 'erro');
             }
         });
@@ -371,22 +387,40 @@
             const ano = document.getElementById('filtroAno').value;
 
             try {
+                // Mostra indicador de carregamento
+                document.getElementById('gastosLista').innerHTML = '<div class="vazio">Carregando gastos...</div>';
+
                 const response = await fetch(`/api/gastos/mes?mes=${mes}&ano=${ano}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
                 const data = await response.json();
 
-                atualizarResumo(data.total);
-                exibirGastos(data.gastos);
+                // Verifica se a resposta tem a estrutura esperada
+                if (data && typeof data === 'object') {
+                    atualizarResumo(data.total || 0);
+                    exibirGastos(data.gastos || []);
+                } else {
+                    throw new Error('Resposta inválida do servidor');
+                }
             } catch (error) {
+                console.error('Erro ao carregar gastos:', error);
                 mostrarMensagem('Erro ao carregar gastos: ' + error.message, 'erro');
+                document.getElementById('gastosLista').innerHTML = '<div class="vazio">Erro ao carregar gastos. Tente novamente.</div>';
             }
         }
 
         // Atualizar resumo
         function atualizarResumo(total) {
             const resumoDiv = document.getElementById('resumo');
+            const totalFormatado = typeof total === 'number' 
+                ? total.toFixed(2).replace('.', ',') 
+                : '0,00';
             resumoDiv.innerHTML = `
                 <h2>Total do Mês</h2>
-                <div class="total">R$ ${total.toFixed(2).replace('.', ',')}</div>
+                <div class="total">R$ ${totalFormatado}</div>
             `;
         }
 
@@ -399,20 +433,31 @@
                 return;
             }
 
-            listaDiv.innerHTML = gastos.map(gasto => `
+            listaDiv.innerHTML = gastos.map(gasto => {
+                // Escapa caracteres especiais para prevenir XSS
+                const descricao = escapeHtml(gasto.descricao || '');
+                const categoria = escapeHtml(gasto.categoria || '');
+                const dataFormatada = formatarData(gasto.data);
+                const valorFormatado = typeof gasto.valor === 'number' 
+                    ? gasto.valor.toFixed(2).replace('.', ',') 
+                    : '0,00';
+                const id = gasto.id || '';
+                
+                return `
                 <div class="gasto-item">
                     <div class="gasto-info">
-                        <div class="gasto-descricao">${gasto.descricao}</div>
+                        <div class="gasto-descricao">${descricao}</div>
                         <div class="gasto-detalhes">
-                            ${gasto.categoria} • ${formatarData(gasto.data)}
+                            ${categoria} • ${dataFormatada}
                         </div>
                     </div>
                     <div style="display: flex; align-items: center;">
-                        <div class="gasto-valor">R$ ${gasto.valor.toFixed(2).replace('.', ',')}</div>
-                        <button class="btn-remover" onclick="removerGasto('${gasto.id}')">Remover</button>
+                        <div class="gasto-valor">R$ ${valorFormatado}</div>
+                        <button class="btn-remover" onclick="removerGasto('${id}')">Remover</button>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // Remover gasto
@@ -455,6 +500,13 @@
             setTimeout(() => {
                 mensagemDiv.style.display = 'none';
             }, 3000);
+        }
+
+        // Função para escapar HTML e prevenir XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </body>

@@ -121,12 +121,25 @@ public class Servidor {
             try {
                 // Parse simples do JSON
                 Gasto gasto = parseGastoFromJSON(body);
+                
+                // Validação básica
+                if (gasto.getDescricao() == null || gasto.getDescricao().trim().isEmpty()) {
+                    throw new IllegalArgumentException("Descrição é obrigatória");
+                }
+                if (gasto.getValor() <= 0) {
+                    throw new IllegalArgumentException("Valor deve ser maior que zero");
+                }
+                
                 String id = gastoDAO.inserir(gasto);
+                System.out.println("Gasto inserido: " + gasto.toString() + " com ID: " + id);
                 
                 String resposta = "{\"sucesso\":true,\"id\":\"" + id + "\"}";
                 enviarResposta(exchange, 201, resposta, "application/json");
             } catch (Exception e) {
-                String resposta = "{\"sucesso\":false,\"erro\":\"" + e.getMessage() + "\"}";
+                System.err.println("Erro ao criar gasto: " + e.getMessage());
+                e.printStackTrace();
+                String erroMsg = e.getMessage().replace("\"", "\\\"").replace("\n", " ");
+                String resposta = "{\"sucesso\":false,\"erro\":\"" + erroMsg + "\"}";
                 enviarResposta(exchange, 400, resposta, "application/json");
             }
         }
@@ -203,12 +216,13 @@ public class Servidor {
 
     private static void enviarResposta(HttpExchange exchange, int statusCode, String resposta, String contentType) 
             throws IOException {
+        byte[] respostaBytes = resposta.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        exchange.sendResponseHeaders(statusCode, resposta.getBytes(StandardCharsets.UTF_8).length);
+        exchange.sendResponseHeaders(statusCode, respostaBytes.length);
         
         try (OutputStream os = exchange.getResponseBody()) {
-            os.write(resposta.getBytes(StandardCharsets.UTF_8));
+            os.write(respostaBytes);
         }
     }
 
