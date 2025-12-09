@@ -49,6 +49,11 @@ public class GastoDAO {
                 .append("mes", gasto.getMes())
                 .append("ano", gasto.getAno());
 
+        // Adiciona imagem da nota fiscal se houver
+        if (gasto.getImagemNotaFiscal() != null && !gasto.getImagemNotaFiscal().trim().isEmpty()) {
+            doc.append("imagemNotaFiscal", gasto.getImagemNotaFiscal());
+        }
+
         collection.insertOne(doc);
         return doc.getObjectId("_id").toString();
     }
@@ -133,6 +138,11 @@ public class GastoDAO {
         
         gasto.setMes(doc.getInteger("mes"));
         gasto.setAno(doc.getInteger("ano"));
+        
+        // Carrega imagem da nota fiscal se existir
+        if (doc.containsKey("imagemNotaFiscal")) {
+            gasto.setImagemNotaFiscal(doc.getString("imagemNotaFiscal"));
+        }
         
         return gasto;
     }

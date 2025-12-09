@@ -213,6 +213,14 @@
             font-size: 1.2em;
         }
 
+        .imagem-nota-fiscal {
+            transition: transform 0.2s;
+        }
+
+        .imagem-nota-fiscal:hover {
+            transform: scale(1.05);
+        }
+
         @media (max-width: 768px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -277,6 +285,15 @@
                     <input type="date" id="data" required>
                 </div>
 
+                <div class="form-group">
+                    <label for="imagemNotaFiscal">Imagem da Nota Fiscal (opcional)</label>
+                    <input type="file" id="imagemNotaFiscal" accept="image/*" onchange="previewImagem(this)">
+                    <div id="previewImagem" style="margin-top: 10px; display: none;">
+                        <img id="previewImg" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 5px; border: 2px solid #ddd;">
+                        <button type="button" onclick="removerPreview()" style="margin-left: 10px; background: #e74c3c; padding: 5px 10px; font-size: 12px;">Remover</button>
+                    </div>
+                </div>
+
                 <button type="submit">Adicionar Gasto</button>
             </form>
         </div>
@@ -334,11 +351,24 @@
         document.getElementById('formGasto').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Converte imagem para Base64 se houver
+            let imagemBase64 = null;
+            const fileInput = document.getElementById('imagemNotaFiscal');
+            if (fileInput.files && fileInput.files[0]) {
+                try {
+                    imagemBase64 = await converterImagemParaBase64(fileInput.files[0]);
+                } catch (error) {
+                    mostrarMensagem('Erro ao processar imagem: ' + error.message, 'erro');
+                    return;
+                }
+            }
+            
             const gasto = {
                 descricao: document.getElementById('descricao').value,
                 valor: parseFloat(document.getElementById('valor').value),
                 categoria: document.getElementById('categoria').value,
-                data: document.getElementById('data').value
+                data: document.getElementById('data').value,
+                imagemNotaFiscal: imagemBase64
             };
 
             try {
@@ -367,6 +397,7 @@
                     // Limpa o formulário e atualiza a lista
                     document.getElementById('formGasto').reset();
                     document.getElementById('data').value = new Date().toISOString().split('T')[0];
+                    removerPreview();
                     
                     // Aguarda um pouco para garantir que o banco processou
                     setTimeout(() => {
@@ -442,6 +473,7 @@
                     ? gasto.valor.toFixed(2).replace('.', ',') 
                     : '0,00';
                 const id = gasto.id || '';
+                const temImagem = gasto.imagemNotaFiscal && gasto.imagemNotaFiscal.trim() !== '';
                 
                 return `
                 <div class="gasto-item">
@@ -450,6 +482,15 @@
                         <div class="gasto-detalhes">
                             ${categoria} • ${dataFormatada}
                         </div>
+                        ${temImagem ? `
+                            <div style="margin-top: 10px;">
+                                <img src="${gasto.imagemNotaFiscal}" 
+                                     alt="Nota Fiscal" 
+                                     class="imagem-nota-fiscal"
+                                     onclick="abrirImagem('${gasto.imagemNotaFiscal}')"
+                                     style="max-width: 150px; max-height: 150px; border-radius: 5px; cursor: pointer; border: 2px solid #667eea;">
+                            </div>
+                        ` : ''}
                     </div>
                     <div style="display: flex; align-items: center;">
                         <div class="gasto-valor">R$ ${valorFormatado}</div>
@@ -507,6 +548,59 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Converter imagem para Base64
+        function converterImagemParaBase64(file) {
+            return new Promise((resolve, reject) => {
+                // Limita tamanho da imagem (máximo 5MB)
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    reject(new Error('Imagem muito grande. Tamanho máximo: 5MB'));
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resolve(e.target.result); // Retorna data:image/...;base64,...
+                };
+                reader.onerror = function(error) {
+                    reject(new Error('Erro ao ler a imagem'));
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Preview da imagem selecionada
+        function previewImagem(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('previewImagem').style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Remover preview
+        function removerPreview() {
+            document.getElementById('imagemNotaFiscal').value = '';
+            document.getElementById('previewImagem').style.display = 'none';
+            document.getElementById('previewImg').src = '';
+        }
+
+        // Abrir imagem em tamanho maior
+        function abrirImagem(base64) {
+            const janela = window.open('', '_blank');
+            janela.document.write(`
+                <html>
+                    <head><title>Nota Fiscal</title></head>
+                    <body style="margin: 0; padding: 20px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+                        <img src="${base64}" style="max-width: 90%; max-height: 90vh; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3);">
+                    </body>
+                </html>
+            `);
         }
     </script>
 </body>

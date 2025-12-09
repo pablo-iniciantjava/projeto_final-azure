@@ -14,6 +14,7 @@ public class Gasto {
     private LocalDate data;
     private int mes;
     private int ano;
+    private String imagemNotaFiscal; // Base64 da imagem da nota fiscal
 
     public Gasto() {
         this.data = LocalDate.now();
@@ -87,6 +88,14 @@ public class Gasto {
 
     public void setAno(int ano) {
         this.ano = ano;
+    }
+
+    public String getImagemNotaFiscal() {
+        return imagemNotaFiscal;
+    }
+
+    public void setImagemNotaFiscal(String imagemNotaFiscal) {
+        this.imagemNotaFiscal = imagemNotaFiscal;
     }
 
     @Override

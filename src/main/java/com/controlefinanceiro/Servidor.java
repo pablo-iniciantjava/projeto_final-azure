@@ -227,25 +227,36 @@ public class Servidor {
     }
 
     private static Gasto parseGastoFromJSON(String json) {
-        // Parser JSON simples (sem biblioteca externa)
+        // Parser JSON simples para lidar com strings longas (Base64)
         Gasto gasto = new Gasto();
         
         try {
-            // Remove chaves e espaços
             json = json.trim();
             if (json.startsWith("{")) {
-                json = json.substring(1);
-            }
-            if (json.endsWith("}")) {
-                json = json.substring(0, json.length() - 1);
+                json = json.substring(1, json.length() - 1).trim();
             }
             
-            // Divide por vírgulas, mas respeitando strings
+            // Processa caractere por caractere, respeitando strings corretamente
             java.util.List<String> campos = new java.util.ArrayList<>();
             StringBuilder campoAtual = new StringBuilder();
             boolean dentroString = false;
+            boolean escape = false;
             
-            for (char c : json.toCharArray()) {
+            for (int i = 0; i < json.length(); i++) {
+                char c = json.charAt(i);
+                
+                if (escape) {
+                    campoAtual.append(c);
+                    escape = false;
+                    continue;
+                }
+                
+                if (c == '\\') {
+                    escape = true;
+                    campoAtual.append(c);
+                    continue;
+                }
+                
                 if (c == '"') {
                     dentroString = !dentroString;
                     campoAtual.append(c);
@@ -264,8 +275,14 @@ public class Servidor {
             for (String campo : campos) {
                 int doisPontos = campo.indexOf(':');
                 if (doisPontos > 0) {
-                    String chave = campo.substring(0, doisPontos).trim().replaceAll("\"", "");
-                    String valor = campo.substring(doisPontos + 1).trim().replaceAll("\"", "");
+                    String chave = campo.substring(0, doisPontos).trim().replaceAll("^\"|\"$", "");
+                    String valorRaw = campo.substring(doisPontos + 1).trim();
+                    String valor = valorRaw;
+                    
+                    // Remove aspas se for string
+                    if (valorRaw.startsWith("\"") && valorRaw.endsWith("\"")) {
+                        valor = unescapeJsonString(valorRaw.substring(1, valorRaw.length() - 1));
+                    }
                     
                     switch (chave) {
                         case "descricao":
@@ -280,10 +297,16 @@ public class Servidor {
                         case "data":
                             gasto.setData(LocalDate.parse(valor, DateTimeFormatter.ISO_LOCAL_DATE));
                             break;
+                        case "imagemNotaFiscal":
+                            gasto.setImagemNotaFiscal(valor);
+                            break;
                     }
                 }
             }
         } catch (Exception e) {
+            System.err.println("Erro ao processar JSON: " + e.getMessage());
+            System.err.println("JSON recebido (primeiros 500 chars): " + 
+                json.substring(0, Math.min(500, json.length())) + "...");
             throw new RuntimeException("Erro ao processar JSON: " + e.getMessage(), e);
         }
         
@@ -293,6 +316,15 @@ public class Servidor {
         }
         
         return gasto;
+    }
+    
+    // Desfaz escape de caracteres especiais em strings JSON
+    private static String unescapeJsonString(String str) {
+        return str.replace("\\\"", "\"")
+                  .replace("\\\\", "\\")
+                  .replace("\\n", "\n")
+                  .replace("\\r", "\r")
+                  .replace("\\t", "\t");
     }
 
     private static String converterParaJSON(java.util.List<Gasto> gastos) {
@@ -307,17 +339,35 @@ public class Servidor {
             
             json.append("{")
                 .append("\"id\":\"").append(gasto.getId()).append("\",")
-                .append("\"descricao\":\"").append(gasto.getDescricao()).append("\",")
+                .append("\"descricao\":\"").append(escapeJson(gasto.getDescricao())).append("\",")
                 .append("\"valor\":").append(gasto.getValor()).append(",")
-                .append("\"categoria\":\"").append(gasto.getCategoria()).append("\",")
+                .append("\"categoria\":\"").append(escapeJson(gasto.getCategoria())).append("\",")
                 .append("\"data\":\"").append(gasto.getData().format(DateTimeFormatter.ISO_LOCAL_DATE)).append("\",")
                 .append("\"mes\":").append(gasto.getMes()).append(",")
-                .append("\"ano\":").append(gasto.getAno())
-                .append("}");
+                .append("\"ano\":").append(gasto.getAno());
+            
+            // Adiciona imagem se existir
+            if (gasto.getImagemNotaFiscal() != null && !gasto.getImagemNotaFiscal().trim().isEmpty()) {
+                json.append(",\"imagemNotaFiscal\":\"").append(escapeJson(gasto.getImagemNotaFiscal())).append("\"");
+            }
+            
+            json.append("}");
         }
         
         json.append("]");
         return json.toString();
+    }
+    
+    // Escapa caracteres especiais no JSON
+    private static String escapeJson(String str) {
+        if (str == null) {
+            return "";
+        }
+        return str.replace("\\", "\\\\")
+                  .replace("\"", "\\\"")
+                  .replace("\n", "\\n")
+                  .replace("\r", "\\r")
+                  .replace("\t", "\\t");
     }
 }
 
