@@ -13,7 +13,7 @@
    - Adicione:
      ```
      Name:  MONGODB_URI
-     Value: mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+     Value: mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
      ```
    - Clique em **OK**
 
@@ -24,7 +24,7 @@
 Abra o PowerShell no diretório do projeto e execute:
 
 ```powershell
-$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
 ```
 
 Depois execute a aplicação normalmente pelo IntelliJ.

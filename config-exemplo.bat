@@ -2,7 +2,7 @@
 REM Script de configuração para Windows CMD
 REM Configure a variável de ambiente MONGODB_URI antes de executar a aplicação
 
-set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
 
 echo Variável MONGODB_URI configurada!
 echo.

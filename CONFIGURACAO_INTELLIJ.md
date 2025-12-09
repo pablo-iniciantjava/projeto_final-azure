@@ -7,7 +7,7 @@
 3. Na seção **Environment variables**, clique no ícone de pasta para adicionar variáveis
 4. Adicione:
    - **Name**: `MONGODB_URI`
-   - **Value**: `mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes`
+   - **Value**: `mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes`
 5. Clique em **OK** e execute novamente
 
 ## Opção 2: Configurar no Terminal Integrado
@@ -16,12 +16,12 @@ Antes de executar pelo IntelliJ, configure a variável no terminal integrado:
 
 **PowerShell:**
 ```powershell
-$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
 ```
 
 **CMD:**
 ```cmd
-set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
 ```
 
 ## Opção 3: Usar o Script executar.ps1

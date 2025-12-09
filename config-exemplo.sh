@@ -2,7 +2,7 @@
 # Script de configuração para Linux/Mac
 # Configure a variável de ambiente MONGODB_URI antes de executar a aplicação
 
-export MONGODB_URI="mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+export MONGODB_URI="mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
 
 echo "Variável MONGODB_URI configurada!"
 echo ""

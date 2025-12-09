@@ -4,7 +4,7 @@
 Write-Host "=== Configurando variável de ambiente MONGODB_URI ===" -ForegroundColor Cyan
 
 # Configure aqui sua string de conexão do MongoDB Atlas
-$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
 
 Write-Host "Variável MONGODB_URI configurada!" -ForegroundColor Green
 Write-Host ""
