@@ -12,3 +12,4 @@ Write-Host "Ou compile e execute:" -ForegroundColor Yellow
 Write-Host "mvn clean package" -ForegroundColor Cyan
 Write-Host "java -jar target/controle-financeiro-1.0.0.jar" -ForegroundColor Cyan
 
+
