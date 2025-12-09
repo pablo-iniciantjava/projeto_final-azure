@@ -19,12 +19,11 @@ import java.util.stream.Collectors;
 public class Servidor {
     private static final int PORTA = 8080;
     private static GastoDAO gastoDAO;
-    private static final String MONGODB_URI = System.getenv("MONGODB_URI");
 
     public static void main(String[] args) {
         // Verifica se a URI do MongoDB foi configurada
-        String connectionString = MONGODB_URI;
-        if (connectionString == null || connectionString.isEmpty()) {
+        String mongoUri = System.getenv("MONGODB_URI");
+        if (mongoUri == null || mongoUri.isEmpty()) {
             System.err.println("ERRO: Variável de ambiente MONGODB_URI não configurada!");
             System.err.println("Configure a variável de ambiente com a string de conexão do MongoDB Atlas.");
             System.err.println("Exemplo: export MONGODB_URI=\"mongodb+srv://usuario:senha@cluster.mongodb.net/\"");
@@ -33,8 +32,8 @@ public class Servidor {
 
         try {
             // Inicializa o DAO
-            gastoDAO = new GastoDAO(connectionString);
-            System.out.println("Conectado ao MongoDB com sucesso!");
+            gastoDAO = new GastoDAO(mongoUri);
+            System.out.println("✅ Conectado ao MongoDB com sucesso!");
 
             // Cria o servidor HTTP
             HttpServer server = HttpServer.create(new InetSocketAddress(PORTA), 0);
