@@ -28,11 +28,32 @@ public class GastoDAO {
 
     public GastoDAO(String connectionString) {
         try {
+            System.out.println("Inicializando conexão com MongoDB...");
             this.mongoClient = MongoClients.create(connectionString);
+            
+            // Testa a conexão tentando listar os bancos de dados
+            try {
+                mongoClient.listDatabaseNames().first();
+                System.out.println("Conexão com MongoDB estabelecida com sucesso!");
+            } catch (Exception e) {
+                System.err.println("AVISO: Não foi possível validar a conexão: " + e.getMessage());
+            }
+            
             this.database = mongoClient.getDatabase(DATABASE_NAME);
             this.collection = database.getCollection(COLLECTION_NAME);
+            
+            System.out.println("Usando banco de dados: " + DATABASE_NAME);
+            System.out.println("Usando coleção: " + COLLECTION_NAME);
         } catch (Exception e) {
-            System.err.println("Erro ao conectar ao MongoDB: " + e.getMessage());
+            System.err.println("ERRO ao conectar ao MongoDB: " + e.getMessage());
+            if (e.getMessage() != null && e.getMessage().contains("SRV record")) {
+                System.err.println("\n⚠️  PROBLEMA DE CONEXÃO DETECTADO:");
+                System.err.println("   - Verifique se a string de conexão está correta");
+                System.err.println("   - Verifique sua conexão com a internet");
+                System.err.println("   - Verifique se o DNS está funcionando");
+                System.err.println("   - Verifique se o IP está liberado no MongoDB Atlas (Network Access)");
+                System.err.println("\n   String de conexão deve ser: mongodb+srv://usuario:senha@NOME_DO_CLUSTER.mongodb.net/");
+            }
             throw new RuntimeException("Falha na conexão com MongoDB", e);
         }
     }
@@ -41,21 +62,41 @@ public class GastoDAO {
      * Insere um novo gasto no banco de dados
      */
     public String inserir(Gasto gasto) {
-        Document doc = new Document()
-                .append("descricao", gasto.getDescricao())
-                .append("valor", gasto.getValor())
-                .append("categoria", gasto.getCategoria())
-                .append("data", gasto.getData().format(DateTimeFormatter.ISO_LOCAL_DATE))
-                .append("mes", gasto.getMes())
-                .append("ano", gasto.getAno());
+        try {
+            Document doc = new Document()
+                    .append("descricao", gasto.getDescricao())
+                    .append("valor", gasto.getValor())
+                    .append("categoria", gasto.getCategoria())
+                    .append("data", gasto.getData().format(DateTimeFormatter.ISO_LOCAL_DATE))
+                    .append("mes", gasto.getMes())
+                    .append("ano", gasto.getAno());
 
-        // Adiciona imagem da nota fiscal se houver
-        if (gasto.getImagemNotaFiscal() != null && !gasto.getImagemNotaFiscal().trim().isEmpty()) {
-            doc.append("imagemNotaFiscal", gasto.getImagemNotaFiscal());
+            // Adiciona imagem da nota fiscal se houver
+            if (gasto.getImagemNotaFiscal() != null && !gasto.getImagemNotaFiscal().trim().isEmpty()) {
+                doc.append("imagemNotaFiscal", gasto.getImagemNotaFiscal());
+            }
+
+            collection.insertOne(doc);
+            return doc.getObjectId("_id").toString();
+        } catch (com.mongodb.MongoTimeoutException e) {
+            System.err.println("\n⚠️  ERRO DE TIMEOUT AO INSERIR:");
+            System.err.println("   A conexão com o MongoDB Atlas expirou.");
+            System.err.println("   Possíveis causas:");
+            System.err.println("   1. String de conexão incorreta ou incompleta");
+            System.err.println("   2. IP não está liberado no Network Access do MongoDB Atlas");
+            System.err.println("   3. Problema de conexão com a internet");
+            System.err.println("   4. Cluster do MongoDB Atlas pode estar pausado");
+            throw new RuntimeException("Erro ao inserir gasto: " + e.getMessage(), e);
+        } catch (com.mongodb.MongoConfigurationException e) {
+            System.err.println("\n⚠️  ERRO DE CONFIGURAÇÃO:");
+            System.err.println("   Verifique se a string de conexão está correta.");
+            System.err.println("   Deve ser: mongodb+srv://usuario:senha@NOME_DO_CLUSTER.mongodb.net/");
+            throw new RuntimeException("Erro ao inserir gasto: " + e.getMessage(), e);
+        } catch (Exception e) {
+            System.err.println("\n⚠️  ERRO AO INSERIR GASTO:");
+            System.err.println("   " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            throw new RuntimeException("Erro ao inserir gasto: " + e.getMessage(), e);
         }
-
-        collection.insertOne(doc);
-        return doc.getObjectId("_id").toString();
     }
 
     /**

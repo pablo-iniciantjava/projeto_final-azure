@@ -29,6 +29,18 @@ public class Servidor {
             System.err.println("Exemplo: export MONGODB_URI=\"mongodb+srv://usuario:senha@cluster.mongodb.net/\"");
             System.exit(1);
         }
+        
+        // Valida a string de conexão
+        if (!mongoUri.startsWith("mongodb://") && !mongoUri.startsWith("mongodb+srv://")) {
+            System.err.println("ERRO: String de conexão inválida!");
+            System.err.println("A string deve começar com 'mongodb://' ou 'mongodb+srv://'");
+            System.err.println("String recebida: " + mongoUri.substring(0, Math.min(50, mongoUri.length())) + "...");
+            System.exit(1);
+        }
+        
+        // Mostra informações de debug (sem senha)
+        String uriDebug = mongoUri.replaceAll("://([^:]+):([^@]+)@", "://$1:***@");
+        System.out.println("Conectando ao MongoDB: " + uriDebug);
 
         try {
             // Inicializa o DAO
