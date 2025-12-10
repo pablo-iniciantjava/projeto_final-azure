@@ -21,25 +21,18 @@ public class Servidor {
     private static GastoDAO gastoDAO;
 
     public static void main(String[] args) {
-        // Verifica se a URI do MongoDB foi configurada
-        String mongoUri = System.getenv("MONGODB_URI");
-        if (mongoUri == null || mongoUri.isEmpty()) {
-            System.err.println("ERRO: Variável de ambiente MONGODB_URI não configurada!");
-            System.err.println("Configure a variável de ambiente com a string de conexão do MongoDB Atlas.");
-            System.err.println("Exemplo: export MONGODB_URI=\"mongodb+srv://usuario:senha@cluster.mongodb.net/\"");
-            System.exit(1);
-        }
-        
-        // Valida a string de conexão
-        if (!mongoUri.startsWith("mongodb://") && !mongoUri.startsWith("mongodb+srv://")) {
-            System.err.println("ERRO: String de conexão inválida!");
-            System.err.println("A string deve começar com 'mongodb://' ou 'mongodb+srv://'");
-            System.err.println("String recebida: " + mongoUri.substring(0, Math.min(50, mongoUri.length())) + "...");
-            System.exit(1);
-        }
-        
-        // Mostra informações de debug (sem senha)
-        String uriDebug = mongoUri.replaceAll("://([^:]+):([^@]+)@", "://$1:***@");
+        // ==========================
+        // DADOS FIXOS DE CONEXÃO
+        // ==========================
+        String usuario = "pablovms_db_user";
+        String senha   = "HgFbSwXyceLctl6j";
+        String host    = "cluster0.e6lvmr8.mongodb.net";
+
+        // Monta a URI
+        String mongoUri = "mongodb+srv://" + usuario + ":" + senha + "@" + host + "/?appName=Cluster0";
+
+        // Log sem exibir senha
+        String uriDebug = "mongodb+srv://" + usuario + ":***@" + host + "/";
         System.out.println("Conectando ao MongoDB: " + uriDebug);
 
         try {
@@ -49,18 +42,18 @@ public class Servidor {
 
             // Cria o servidor HTTP
             HttpServer server = HttpServer.create(new InetSocketAddress(PORTA), 0);
-            
-            // Define os endpoints
+
+            // Endpoints
             server.createContext("/", new HomeHandler());
             server.createContext("/api/gastos", new GastosHandler());
             server.createContext("/api/gastos/mes", new GastosPorMesHandler());
-            
+
             server.setExecutor(null);
             server.start();
-            
+
             System.out.println("Servidor iniciado na porta " + PORTA);
             System.out.println("Acesse: http://localhost:" + PORTA);
-            
+
         } catch (Exception e) {
             System.err.println("Erro ao iniciar servidor: " + e.getMessage());
             e.printStackTrace();
@@ -68,9 +61,9 @@ public class Servidor {
         }
     }
 
-    /**
-     * Handler para a página inicial (HTML)
-     */
+    // ==========================
+    // HOME
+    // ==========================
     static class HomeHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -85,7 +78,7 @@ public class Servidor {
         private String lerArquivoHTML() {
             try (InputStream is = Servidor.class.getResourceAsStream("/index.html");
                  BufferedReader reader = new BufferedReader(
-                     new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                         new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 return reader.lines().collect(Collectors.joining("\n"));
             } catch (Exception e) {
                 return gerarHTMLPadrao();
@@ -94,18 +87,18 @@ public class Servidor {
 
         private String gerarHTMLPadrao() {
             return "<!DOCTYPE html><html><head><title>Controle Financeiro</title></head>" +
-                   "<body><h1>Erro ao carregar página</h1></body></html>";
+                    "<body><h1>Erro ao carregar página</h1></body></html>";
         }
     }
 
-    /**
-     * Handler para operações CRUD de gastos
-     */
+    // ==========================
+    // CRUD DE GASTOS
+    // ==========================
     static class GastosHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
             String method = exchange.getRequestMethod();
-            
+
             switch (method) {
                 case "GET":
                     listarGastos(exchange);
@@ -129,28 +122,23 @@ public class Servidor {
 
         private void criarGasto(HttpExchange exchange) throws IOException {
             String body = lerBody(exchange);
-            
+
             try {
-                // Parse simples do JSON
                 Gasto gasto = parseGastoFromJSON(body);
-                
-                // Validação básica
+
                 if (gasto.getDescricao() == null || gasto.getDescricao().trim().isEmpty()) {
                     throw new IllegalArgumentException("Descrição é obrigatória");
                 }
                 if (gasto.getValor() <= 0) {
                     throw new IllegalArgumentException("Valor deve ser maior que zero");
                 }
-                
+
                 String id = gastoDAO.inserir(gasto);
-                System.out.println("Gasto inserido: " + gasto.toString() + " com ID: " + id);
-                
+
                 String resposta = "{\"sucesso\":true,\"id\":\"" + id + "\"}";
                 enviarResposta(exchange, 201, resposta, "application/json");
             } catch (Exception e) {
-                System.err.println("Erro ao criar gasto: " + e.getMessage());
-                e.printStackTrace();
-                String erroMsg = e.getMessage().replace("\"", "\\\"").replace("\n", " ");
+                String erroMsg = e.getMessage().replace("\"", "\\\"");
                 String resposta = "{\"sucesso\":false,\"erro\":\"" + erroMsg + "\"}";
                 enviarResposta(exchange, 400, resposta, "application/json");
             }
@@ -159,25 +147,25 @@ public class Servidor {
         private void removerGasto(HttpExchange exchange) throws IOException {
             String query = exchange.getRequestURI().getQuery();
             String id = null;
-            
+
             if (query != null && query.startsWith("id=")) {
                 id = query.substring(3);
             }
-            
+
             if (id == null || id.isEmpty()) {
                 enviarResposta(exchange, 400, "{\"sucesso\":false,\"erro\":\"ID não fornecido\"}", "application/json");
                 return;
             }
-            
+
             boolean removido = gastoDAO.remover(id);
             String resposta = "{\"sucesso\":" + removido + "}";
             enviarResposta(exchange, removido ? 200 : 404, resposta, "application/json");
         }
     }
 
-    /**
-     * Handler para listar gastos por mês e ano
-     */
+    // ==========================
+    // GASTOS POR MÊS
+    // ==========================
     static class GastosPorMesHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange exchange) throws IOException {
@@ -185,11 +173,11 @@ public class Servidor {
                 enviarResposta(exchange, 405, "Método não permitido", "text/plain");
                 return;
             }
-            
+
             String query = exchange.getRequestURI().getQuery();
             int mes = LocalDate.now().getMonthValue();
             int ano = LocalDate.now().getYear();
-            
+
             if (query != null) {
                 String[] params = query.split("&");
                 for (String param : params) {
@@ -203,22 +191,22 @@ public class Servidor {
                     }
                 }
             }
-            
+
             var gastos = gastoDAO.listarPorMesAno(mes, ano);
             double total = gastoDAO.calcularTotalPorMesAno(mes, ano);
-            
-            String json = "{\"gastos\":" + converterParaJSON(gastos) + 
-                         ",\"total\":" + total + 
-                         ",\"mes\":" + mes + 
-                         ",\"ano\":" + ano + "}";
-            
+
+            String json = "{\"gastos\":" + converterParaJSON(gastos) +
+                    ",\"total\":" + total +
+                    ",\"mes\":" + mes +
+                    ",\"ano\":" + ano + "}";
+
             enviarResposta(exchange, 200, json, "application/json");
         }
     }
 
-    /**
-     * Utilitários
-     */
+    // ==========================
+    // UTILITÁRIOS
+    // ==========================
     private static String lerBody(HttpExchange exchange) throws IOException {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
@@ -226,160 +214,122 @@ public class Servidor {
         }
     }
 
-    private static void enviarResposta(HttpExchange exchange, int statusCode, String resposta, String contentType) 
+    private static void enviarResposta(HttpExchange exchange, int statusCode, String resposta, String contentType)
             throws IOException {
         byte[] respostaBytes = resposta.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", contentType);
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
         exchange.sendResponseHeaders(statusCode, respostaBytes.length);
-        
+
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(respostaBytes);
         }
     }
 
     private static Gasto parseGastoFromJSON(String json) {
-        // Parser JSON simples para lidar com strings longas (Base64)
         Gasto gasto = new Gasto();
         
-        try {
-            json = json.trim();
-            if (json.startsWith("{")) {
-                json = json.substring(1, json.length() - 1).trim();
-            }
-            
-            // Processa caractere por caractere, respeitando strings corretamente
-            java.util.List<String> campos = new java.util.ArrayList<>();
-            StringBuilder campoAtual = new StringBuilder();
-            boolean dentroString = false;
-            boolean escape = false;
-            
-            for (int i = 0; i < json.length(); i++) {
-                char c = json.charAt(i);
-                
-                if (escape) {
-                    campoAtual.append(c);
-                    escape = false;
-                    continue;
-                }
-                
-                if (c == '\\') {
-                    escape = true;
-                    campoAtual.append(c);
-                    continue;
-                }
-                
-                if (c == '"') {
-                    dentroString = !dentroString;
-                    campoAtual.append(c);
-                } else if (c == ',' && !dentroString) {
-                    campos.add(campoAtual.toString().trim());
-                    campoAtual = new StringBuilder();
-                } else {
-                    campoAtual.append(c);
-                }
-            }
-            if (campoAtual.length() > 0) {
-                campos.add(campoAtual.toString().trim());
-            }
-            
-            // Processa cada campo
-            for (String campo : campos) {
-                int doisPontos = campo.indexOf(':');
-                if (doisPontos > 0) {
-                    String chave = campo.substring(0, doisPontos).trim().replaceAll("^\"|\"$", "");
-                    String valorRaw = campo.substring(doisPontos + 1).trim();
-                    String valor = valorRaw;
-                    
-                    // Remove aspas se for string
-                    if (valorRaw.startsWith("\"") && valorRaw.endsWith("\"")) {
-                        valor = unescapeJsonString(valorRaw.substring(1, valorRaw.length() - 1));
-                    }
-                    
-                    switch (chave) {
-                        case "descricao":
-                            gasto.setDescricao(valor);
-                            break;
-                        case "valor":
-                            gasto.setValor(Double.parseDouble(valor));
-                            break;
-                        case "categoria":
-                            gasto.setCategoria(valor);
-                            break;
-                        case "data":
-                            gasto.setData(LocalDate.parse(valor, DateTimeFormatter.ISO_LOCAL_DATE));
-                            break;
-                        case "imagemNotaFiscal":
-                            gasto.setImagemNotaFiscal(valor);
-                            break;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Erro ao processar JSON: " + e.getMessage());
-            System.err.println("JSON recebido (primeiros 500 chars): " + 
-                json.substring(0, Math.min(500, json.length())) + "...");
-            throw new RuntimeException("Erro ao processar JSON: " + e.getMessage(), e);
+        // Remove espaços e quebras de linha
+        json = json.trim().replaceAll("\\s+", "");
+        
+        // Remove chaves externas
+        if (json.startsWith("{")) {
+            json = json.substring(1, json.length() - 1);
         }
         
-        // Se data não foi fornecida, usa a data atual
-        if (gasto.getData() == null) {
+        // Extrai os campos do JSON
+        String descricao = extrairValorJSON(json, "descricao");
+        String valorStr = extrairValorJSON(json, "valor");
+        String categoria = extrairValorJSON(json, "categoria");
+        String dataStr = extrairValorJSON(json, "data");
+        
+        // Define os valores no objeto Gasto
+        if (descricao != null && !descricao.isEmpty()) {
+            gasto.setDescricao(descricao);
+        }
+        
+        if (valorStr != null && !valorStr.isEmpty()) {
+            try {
+                gasto.setValor(Double.parseDouble(valorStr));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Valor inválido: " + valorStr);
+            }
+        }
+        
+        if (categoria != null && !categoria.isEmpty()) {
+            gasto.setCategoria(categoria);
+        }
+        
+        if (dataStr != null && !dataStr.isEmpty()) {
+            try {
+                gasto.setData(LocalDate.parse(dataStr, DateTimeFormatter.ISO_LOCAL_DATE));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Data inválida: " + dataStr);
+            }
+        } else {
             gasto.setData(LocalDate.now());
         }
         
         return gasto;
     }
     
-    // Desfaz escape de caracteres especiais em strings JSON
-    private static String unescapeJsonString(String str) {
-        return str.replace("\\\"", "\"")
-                  .replace("\\\\", "\\")
-                  .replace("\\n", "\n")
-                  .replace("\\r", "\r")
-                  .replace("\\t", "\t");
+    private static String extrairValorJSON(String json, String campo) {
+        String busca = "\"" + campo + "\":";
+        int inicio = json.indexOf(busca);
+        if (inicio == -1) {
+            return null;
+        }
+        
+        inicio += busca.length();
+        
+        // Verifica se é string (entre aspas) ou número
+        if (inicio < json.length() && json.charAt(inicio) == '"') {
+            // É uma string
+            inicio++; // Pula a primeira aspas
+            int fim = json.indexOf('"', inicio);
+            if (fim == -1) {
+                return null;
+            }
+            String valor = json.substring(inicio, fim);
+            // Remove escape de aspas
+            return valor.replace("\\\"", "\"").replace("\\\\", "\\");
+        } else {
+            // É um número ou boolean
+            int fim = inicio;
+            while (fim < json.length() && json.charAt(fim) != ',' && json.charAt(fim) != '}') {
+                fim++;
+            }
+            return json.substring(inicio, fim).trim();
+        }
     }
 
     private static String converterParaJSON(java.util.List<Gasto> gastos) {
         StringBuilder json = new StringBuilder("[");
         boolean primeiro = true;
-        
+
         for (Gasto gasto : gastos) {
             if (!primeiro) {
                 json.append(",");
             }
             primeiro = false;
-            
+
             json.append("{")
-                .append("\"id\":\"").append(gasto.getId()).append("\",")
-                .append("\"descricao\":\"").append(escapeJson(gasto.getDescricao())).append("\",")
-                .append("\"valor\":").append(gasto.getValor()).append(",")
-                .append("\"categoria\":\"").append(escapeJson(gasto.getCategoria())).append("\",")
-                .append("\"data\":\"").append(gasto.getData().format(DateTimeFormatter.ISO_LOCAL_DATE)).append("\",")
-                .append("\"mes\":").append(gasto.getMes()).append(",")
-                .append("\"ano\":").append(gasto.getAno());
-            
-            // Adiciona imagem se existir
-            if (gasto.getImagemNotaFiscal() != null && !gasto.getImagemNotaFiscal().trim().isEmpty()) {
-                json.append(",\"imagemNotaFiscal\":\"").append(escapeJson(gasto.getImagemNotaFiscal())).append("\"");
-            }
-            
-            json.append("}");
+                    .append("\"id\":\"").append(gasto.getId()).append("\",")
+                    .append("\"descricao\":\"").append(escapeJson(gasto.getDescricao())).append("\",")
+                    .append("\"valor\":").append(gasto.getValor()).append(",")
+                    .append("\"categoria\":\"").append(escapeJson(gasto.getCategoria())).append("\",")
+                    .append("\"data\":\"").append(gasto.getData().format(DateTimeFormatter.ISO_LOCAL_DATE)).append("\",")
+                    .append("\"mes\":").append(gasto.getMes()).append(",")
+                    .append("\"ano\":").append(gasto.getAno())
+                    .append("}");
         }
-        
+
         json.append("]");
         return json.toString();
     }
-    
-    // Escapa caracteres especiais no JSON
+
     private static String escapeJson(String str) {
-        if (str == null) {
-            return "";
-        }
-        return str.replace("\\", "\\\\")
-                  .replace("\"", "\\\"")
-                  .replace("\n", "\\n")
-                  .replace("\r", "\\r")
-                  .replace("\t", "\\t");
+        if (str == null) return "";
+        return str.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
-

@@ -136,3 +136,4 @@ mongodb+srv://gustavoflopes:Senai%402025@cluster0.abc123def.mongodb.net/?retryWr
 
 Consulte o arquivo `TROUBLESHOOTING.md` para mais soluções de problemas comuns.
 
+

@@ -98,3 +98,4 @@ Conectando ao MongoDB: mongodb://USUARIO:***@atlas-sql-69374f43db44607e5a5ab60e-
 - A autenticação usa o source `admin`
 - SSL está habilitado por padrão
 
+

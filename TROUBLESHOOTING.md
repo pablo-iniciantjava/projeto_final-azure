@@ -101,3 +101,4 @@ A aplicação agora mostra mais informações de debug:
 - ✅ Mostra qual banco e coleção está sendo usado
 - ✅ Exibe erros detalhados com sugestões de solução
 
+
