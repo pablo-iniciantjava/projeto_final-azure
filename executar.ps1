@@ -3,13 +3,28 @@
 
 Write-Host "=== Configurando variável de ambiente MONGODB_URI ===" -ForegroundColor Cyan
 
-# Configure aqui sua string de conexão do MongoDB Atlas
-# ATENÇÃO: Substitua USUARIO e SENHA pelas suas credenciais do MongoDB Atlas
-# Se a senha contém caracteres especiais, use URL encoding: @ = %40, # = %23, etc.
-$env:MONGODB_URI = "mongodb://USUARIO:SENHA@atlas-sql-69374f43db44607e5a5ab60e-rmm2m7.z.query.mongodb.net/cursosenai?ssl=true&authSource=admin"
+# ============================================================================
+# CONFIGURAÇÃO DA STRING DE CONEXÃO MONGODB ATLAS
+# ============================================================================
+# IMPORTANTE: Substitua os placeholders pela sua configuração real:
+#   - <username> = seu usuário do MongoDB Atlas
+#   - <password> = sua senha (se contém @, use %40; se contém #, use %23, etc.)
+#   - xxxxx = código real do seu cluster (ex: abc123)
+#
+# Para obter a string correta:
+# 1. Acesse https://cloud.mongodb.com
+# 2. Clique em "Connect" no seu cluster
+# 3. Escolha "Connect your application"
+# 4. Copie a string e substitua <password> pela senha real
+#
+# ============================================================================
 
-# String alternativa (conexão SRV):
-# $env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+# String de conexão MongoDB Atlas (formato SRV recomendado)
+# SUBSTITUA os placeholders abaixo pela sua configuração real:
+$env:MONGODB_URI = "mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority"
+
+# Exemplo completo (descomente e ajuste com seus dados reais):
+# $env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority"
 
 Write-Host "Variável MONGODB_URI configurada!" -ForegroundColor Green
 Write-Host ""

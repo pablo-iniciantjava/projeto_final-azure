@@ -2,12 +2,23 @@
 # Script de configuração para Linux/Mac
 # Configure a variável de ambiente MONGODB_URI antes de executar a aplicação
 
-# ATENÇÃO: Substitua USUARIO e SENHA pelas suas credenciais do MongoDB Atlas
-# Se a senha contém caracteres especiais, use URL encoding: @ = %40, # = %23, etc.
-export MONGODB_URI="mongodb://USUARIO:SENHA@atlas-sql-69374f43db44607e5a5ab60e-rmm2m7.z.query.mongodb.net/cursosenai?ssl=true&authSource=admin"
+# ============================================================================
+# CONFIGURAÇÃO DA STRING DE CONEXÃO MONGODB ATLAS
+# ============================================================================
+# IMPORTANTE: Substitua os placeholders pela sua configuração real:
+#   - <username> = seu usuário do MongoDB Atlas
+#   - <password> = sua senha (se contém @, use %40; se contém #, use %23, etc.)
+#   - xxxxx = código real do seu cluster (ex: abc123)
+#
+# Para obter a string correta, veja o arquivo COMO_OBTER_STRING_CONEXAO.md
+# ============================================================================
 
-# String alternativa (conexão SRV):
-# export MONGODB_URI="mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+# String de conexão MongoDB Atlas (formato SRV recomendado)
+# SUBSTITUA os placeholders abaixo pela sua configuração real:
+export MONGODB_URI="mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority"
+
+# Exemplo completo (descomente e ajuste com seus dados reais):
+# export MONGODB_URI="mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority"
 
 echo "Variável MONGODB_URI configurada!"
 echo ""

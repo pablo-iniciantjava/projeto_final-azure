@@ -7,7 +7,15 @@
 3. Na seção **Environment variables**, clique no ícone de pasta para adicionar variáveis
 4. Adicione:
    - **Name**: `MONGODB_URI`
-   - **Value**: `mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes`
+   - **Value**: `mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority`
+   
+   **⚠️ IMPORTANTE:** Substitua os placeholders:
+   - `<username>` = seu usuário do MongoDB Atlas
+   - `<password>` = sua senha (use `%40` para `@`, etc.)
+   - `xxxxx` = código real do seu cluster
+   
+   **Exemplo:**
+   - `mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority`
 5. Clique em **OK** e execute novamente
 
 ## Opção 2: Configurar no Terminal Integrado
@@ -16,12 +24,18 @@ Antes de executar pelo IntelliJ, configure a variável no terminal integrado:
 
 **PowerShell:**
 ```powershell
-$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+$env:MONGODB_URI = "mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority"
+
+# Exemplo:
+# $env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority"
 ```
 
 **CMD:**
 ```cmd
-set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+set MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+
+REM Exemplo:
+REM set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority
 ```
 
 ## Opção 3: Usar o Script executar.ps1

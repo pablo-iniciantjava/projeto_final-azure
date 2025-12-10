@@ -2,12 +2,23 @@
 REM Script de configuração para Windows CMD
 REM Configure a variável de ambiente MONGODB_URI antes de executar a aplicação
 
-REM ATENÇÃO: Substitua USUARIO e SENHA pelas suas credenciais do MongoDB Atlas
-REM Se a senha contém caracteres especiais, use URL encoding: @ = %%40, # = %%23, etc.
-set MONGODB_URI=mongodb://USUARIO:SENHA@atlas-sql-69374f43db44607e5a5ab60e-rmm2m7.z.query.mongodb.net/cursosenai?ssl=true&authSource=admin
+REM ============================================================================
+REM CONFIGURAÇÃO DA STRING DE CONEXÃO MONGODB ATLAS
+REM ============================================================================
+REM IMPORTANTE: Substitua os placeholders pela sua configuração real:
+REM   - <username> = seu usuário do MongoDB Atlas
+REM   - <password> = sua senha (se contém @, use %%40; se contém #, use %%23, etc.)
+REM   - xxxxx = código real do seu cluster (ex: abc123)
+REM
+REM Para obter a string correta, veja o arquivo COMO_OBTER_STRING_CONEXAO.md
+REM ============================================================================
 
-REM String alternativa (conexão SRV):
-REM set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+REM String de conexão MongoDB Atlas (formato SRV recomendado)
+REM SUBSTITUA os placeholders abaixo pela sua configuração real:
+set MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+
+REM Exemplo completo (descomente e ajuste com seus dados reais):
+REM set MONGODB_URI=mongodb+srv://gustavoflopes:Senai2025%%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority
 
 echo Variável MONGODB_URI configurada!
 echo.

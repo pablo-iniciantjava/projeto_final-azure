@@ -13,7 +13,10 @@
    - Adicione:
      ```
      Name:  MONGODB_URI
-     Value: mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes
+     Value: mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+     
+     ⚠️ Substitua os placeholders pelos valores reais!
+     Exemplo: mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority
      ```
    - Clique em **OK**
 
@@ -24,7 +27,10 @@
 Abra o PowerShell no diretório do projeto e execute:
 
 ```powershell
-$env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@gustavoflopes.7ohuzi9.mongodb.net/?appName=gustavoFLopes"
+$env:MONGODB_URI = "mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority"
+
+# Exemplo:
+# $env:MONGODB_URI = "mongodb+srv://gustavoflopes:Senai2025%40@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority"
 ```
 
 Depois execute a aplicação normalmente pelo IntelliJ.
